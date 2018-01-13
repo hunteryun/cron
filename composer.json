@@ -1,0 +1,5 @@
+{
+    "require": {
+        "godv/cron-manager": "^1.2"
+    }
+}

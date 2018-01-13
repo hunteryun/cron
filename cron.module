@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Implements hook_command().
+ */
+function cron_command() {
+  return array(
+    'name' => 'cron',
+    'file' => 'CronCmd'
+  );
+}

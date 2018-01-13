@@ -1,0 +1,5 @@
+name: Cron
+type: module
+description: 执行定时任务模块.
+core: 1.x
+package: Hunter
