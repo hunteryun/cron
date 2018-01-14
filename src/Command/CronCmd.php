@@ -1,9 +1,12 @@
 <?php
 
+namespace Hunter\cron\Command;
+
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Command\Command as BaseCommand;
+use Hunter\Core\App\Application;
 use SuperCronManager\CronManager;
 
 /**
@@ -11,6 +14,23 @@ use SuperCronManager\CronManager;
  * php hunter cron
  */
 class CronCmd extends BaseCommand {
+    /**
+     * @var moduleHandler
+     */
+    protected $moduleHandler;
+
+    /**
+     * CronCommand constructor.
+     */
+    public function __construct() {
+        $application = new Application();
+        $this->moduleHandler = $application->boot()->getModuleHandle();
+        parent::__construct();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function configure() {
        $this->setName('cron')
             ->setDescription('commands.cron.description')
@@ -21,6 +41,9 @@ class CronCmd extends BaseCommand {
             );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output) {
         //获取参数值
         $param = $input->getArgument('param');
@@ -34,34 +57,10 @@ class CronCmd extends BaseCommand {
         $manager->daemon = true;
         $manager->argv = $param;
 
-        // crontab格式解析
-        $manager->taskInterval('每个小时的1,3,5分钟时运行一次', '1,3,5 * * *', function(){
-            echo "每个小时的1,3,5分钟时运行一次\n";
-        });
-
-        $manager->taskInterval('每1分钟运行一次', '*/1 * * *', function(){
-            echo "每1分钟运行一次\n";
-        });
-
-        $manager->taskInterval('每天凌晨运行', '0 0 * *', function(){
-            echo "每天凌晨运行\n";
-        });
-
-        $manager->taskInterval('每秒运行一次', 's@1', function(){
-            echo "每秒运行一次\n";
-        });
-
-        $manager->taskInterval('每分钟运行一次', 'i@1', function(){
-            echo "每分钟运行一次\n";
-        });
-
-        $manager->taskInterval('每小时钟运行一次', 'h@1', function(){
-            echo "每小时运行一次\n";
-        });
-
-        $manager->taskInterval('指定每天00:00点运行', 'at@00:00', function(){
-            echo "指定每天00:00点运行\n";
-        });
+        foreach ($this->moduleHandler->getImplementations('cron') as $module) {
+          $module_hook_cron = $this->moduleHandler->invoke($module, 'cron');
+          $manager->taskInterval($module_hook_cron['name'], $module_hook_cron['command'], $module_hook_cron['callback']);
+        }
 
         $manager->run();
     }

@@ -1,11 +1,22 @@
 <?php
 
 /**
- * Implements hook_command().
+ * Implements hook_cron().
  */
-function cron_command() {
+function cron_cron() {
   return array(
-    'name' => 'cron',
-    'file' => 'CronCmd'
+    'name' => t('定时备份数据库'),
+    'command' => '0 2 * * 0',//默认为每周日凌晨2点执行，你可以改成s@1测试
+    'callback' => 'cron_backup_database'
   );
+}
+
+/**
+ * callback for cron backup.
+ */
+function cron_backup_database() {
+  if(module_exists('backup')){
+    $time = date('Ymd-h-i-s', time());
+    hunter_backup('sites/backup/backup_'.$time);
+  }
 }
