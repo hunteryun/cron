@@ -6,7 +6,7 @@
 function cron_cron() {
   return array(
     'name' => t('定时备份数据库'),
-    'command' => '0 2 * * 0',//默认为每周日凌晨2点执行，你可以改成s@1测试
+    'command' => 'i@1',//默认为每周日凌晨2点执行，你可以改成s@1测试
     'callback' => 'cron_backup_database'
   );
 }

@@ -48,8 +48,8 @@ class CronCmd extends BaseCommand {
         //获取参数值
         $param = $input->getArgument('param');
 
-        if ($param && !in_array($param, ['status', 'worker', 'check', 'stop', 'restart'])) {
-            return $output->writeln("error `{$param}` just support ['status', 'worker', 'check', 'stop', 'restart']");
+        if ($param && !in_array($param, ['status', 'worker', 'check', 'stop', 'STOP', 'restart'])) {
+            return $output->writeln("error `{$param}` just support ['status', 'worker', 'check', 'stop', 'STOP', 'restart']");
         }
 
         $manager = new CronManager();
@@ -59,7 +59,9 @@ class CronCmd extends BaseCommand {
 
         foreach ($this->moduleHandler->getImplementations('cron') as $module) {
           $module_hook_cron = $this->moduleHandler->invoke($module, 'cron');
-          $manager->taskInterval($module_hook_cron['name'], $module_hook_cron['command'], $module_hook_cron['callback']);
+          if(function_exists($module_hook_cron['callback'])){
+            $manager->taskInterval($module_hook_cron['name'], $module_hook_cron['command'], $module_hook_cron['callback']);
+          }
         }
 
         $manager->run();
